@@ -1,53 +1,60 @@
 "use strict";
 
-class Input {
-    static leftPressed = false;
-    static rightPressed = false;
-    static upPressed = false;
-    static downPressed = false;
+class InputManager {
 
-    static onKeyDown(event) {
+    constructor() {
+        this.leftPressed = false;
+        this.rightPressed = false;
+        this.upPressed = false;
+        this.downPressed = false;    
+
+        // there is a weird interaction between callbacks and class methods that leaves the
+        // 'this' variable unbound. It can be solved by explicitly binding 'this' to 'this'
+        // https://stackoverflow.com/questions/13996263/javascript-scope-addeventlistener-and-this
+
+        document.addEventListener("keydown", this.onKeyDown.bind(this));
+        document.addEventListener("keyup", this.onKeyUp.bind(this));
+    }
+
+    onKeyDown(event) {
         switch (event.key) {
             case "ArrowLeft": 
-                Input.leftPressed = true;
+                this.leftPressed = true;
                 break;
 
             case "ArrowRight": 
-                Input.rightPressed = true;
+                this.rightPressed = true;
                 break;
 
             case "ArrowDown":
-                Input.downPressed = true;
+                this.downPressed = true;
                 break;
 
             case "ArrowUp":
-                Input.upPressed = true;
+                this.upPressed = true;
                 break;
         }
     }
 
-    static onKeyUp(event) {
+    onKeyUp(event) {
         switch (event.key) {
             case "ArrowLeft": 
-                Input.leftPressed = false;
+                this.leftPressed = false;
                 break;
 
             case "ArrowRight": 
-                Input.rightPressed = false;
+                this.rightPressed = false;
                 break;
 
             case "ArrowDown":
-                Input.downPressed = false;
+                this.downPressed = false;
                 break;
 
             case "ArrowUp":
-                Input.upPressed = false;
+                this.upPressed = false;
                 break;
         }
     }
 }
 
-// register event handlers
-
-document.addEventListener("keydown", Input.onKeyDown);
-document.addEventListener("keyup", Input.onKeyUp);
+const Input = new InputManager();
