@@ -105,6 +105,7 @@ function main() {
     for (let i = 0; i < nAttributes; i++) {
         const name = gl.getActiveAttrib(program, i).name;
         shader[name] = gl.getAttribLocation(program, name);
+        gl.enableVertexAttribArray(shader[name]);
     }
 
     const nUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
@@ -114,7 +115,6 @@ function main() {
     }
     
     // Initialise the position attribute
-    gl.enableVertexAttribArray(shader["a_position"]);
 
     // Construct the objects
 
