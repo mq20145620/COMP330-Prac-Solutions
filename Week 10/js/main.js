@@ -30,15 +30,21 @@ precision mediump float;
 uniform vec3 u_ambientIntensity;
 uniform vec3 u_diffuseMaterial;
 
+uniform vec3 u_lightIntensity;
+uniform vec3 u_lightDirection;
+
 varying vec3 v_normal;
 
 void main() {
     vec3 n = normalize(v_normal);
+    vec3 s = normalize(u_lightDirection);
 
     vec3 ambient = u_ambientIntensity * u_diffuseMaterial;
-    vec3 intensity = ambient;
-    //gl_FragColor = vec4(intensity, 1); 
-    gl_FragColor = vec4(n, 1); 
+    vec3 diffuse = u_lightIntensity * u_diffuseMaterial * max(0.0, dot(n, s));
+
+    vec3 intensity = ambient + diffuse;
+    gl_FragColor = vec4(intensity, 1); 
+    //gl_FragColor = vec4(n, 1); 
 }
 `;
 
@@ -92,9 +98,12 @@ function main() {
 
     // === Initialisation ===
 
+    // turn on antialiasing
+    const contextParameters =  { antialias: true };
+
     // Get the canvas element & gl rendering context
     const canvas = document.getElementById("c");
-    const gl = canvas.getContext("webgl");
+    const gl = canvas.getContext("webgl", contextParameters);
     if (gl === null) {
         window.alert("WebGL not supported!");
         return;
@@ -218,6 +227,13 @@ function main() {
         {   
             const ambientIntensity = [0.1, 0.1, 0.1];
             gl.uniform3fv(shader["u_ambientIntensity"], new Float32Array(ambientIntensity));
+
+            const lightIntensity = [1, 1, 1];
+            gl.uniform3fv(shader["u_lightIntensity"], new Float32Array(lightIntensity));
+
+            const lightDirection = [0.6, 1, 0.4];
+            gl.uniform3fv(shader["u_lightDirection"], new Float32Array(lightDirection));
+
         }
 
         // render the plane
