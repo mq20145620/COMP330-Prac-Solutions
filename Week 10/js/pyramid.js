@@ -6,9 +6,9 @@ class Pyramid {
         this.position = [0,0,0];
         this.rotation = [0,0,0];
         this.scale = [1,1,1];
-        this.colour = [1,1,0,1];    // yellow
+        this.colour = [1,1,0];    // yellow
         this.matrix = glMatrix.mat4.create();
-        this.normalMatrix = glMatrix.mat4.create();
+        this.normalMatrix = glMatrix.mat3.create();
 
         let points = [
             // base            
@@ -51,7 +51,7 @@ class Pyramid {
         let v10 = glMatrix.vec3.create();
         let v20 = glMatrix.vec3.create();
 
-        for (int i = 0; i < this.nPoints / 3; i++){
+        for (let i = 0; i < this.nPoints / 3; i++){
             const p0 = points.slice(i * 9, i * 9 + 3);
             const p1 = points.slice(i * 9 + 3, i * 9 + 6);
             const p2 = points.slice(i * 9 + 6, i * 9 + 9);
@@ -86,8 +86,8 @@ class Pyramid {
         gl.uniformMatrix4fv(shader["u_worldMatrix"], false, this.matrix);
        
         // 2) set the normal matrix
-        glMatrix.mat3.noramlFromMat4(this.normalMatrix, this.matrix);
-        gl.uniformMatrix3fv(shader["u_normalMatrix"], false, this.matrix);
+        glMatrix.mat3.normalFromMat4(this.normalMatrix, this.matrix);
+        gl.uniformMatrix3fv(shader["u_normalMatrix"], false, this.normalMatrix);
 
         // 1) Set the diffuse material to yellow
         gl.uniform3fv(shader["u_diffuseMaterial"], new Float32Array(this.colour));

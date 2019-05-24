@@ -33,10 +33,12 @@ uniform vec3 u_diffuseMaterial;
 varying vec3 v_normal;
 
 void main() {
+    vec3 n = normalize(v_normal);
+
     vec3 ambient = u_ambientIntensity * u_diffuseMaterial;
     vec3 intensity = ambient;
-    gl_FragColor = vec4(intensity, 1); 
-    // gl_FragColor = vec4(u_diffuseMaterial, 1); 
+    //gl_FragColor = vec4(intensity, 1); 
+    gl_FragColor = vec4(n, 1); 
 }
 `;
 
