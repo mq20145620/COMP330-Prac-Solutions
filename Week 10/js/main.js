@@ -35,7 +35,10 @@ uniform vec3 u_lightDirection;
 
 varying vec3 v_normal;
 
+const float GAMMA = 2.2;
+
 void main() {
+    // Diffuse lighting calculation:
     vec3 n = normalize(v_normal);
     vec3 s = normalize(u_lightDirection);
 
@@ -43,8 +46,10 @@ void main() {
     vec3 diffuse = u_lightIntensity * u_diffuseMaterial * max(0.0, dot(n, s));
 
     vec3 intensity = ambient + diffuse;
-    gl_FragColor = vec4(intensity, 1); 
-    //gl_FragColor = vec4(n, 1); 
+
+    // Gamma correction
+    vec3 brightness = pow(intensity, vec3(1.0 / GAMMA));
+    gl_FragColor = vec4(brightness, 1); 
 }
 `;
 
@@ -231,7 +236,7 @@ function main() {
             const lightIntensity = [1, 1, 1];
             gl.uniform3fv(shader["u_lightIntensity"], new Float32Array(lightIntensity));
 
-            const lightDirection = [0.6, 1, 0.4];
+            const lightDirection = [0.6, 0.1, 0.4];
             gl.uniform3fv(shader["u_lightDirection"], new Float32Array(lightDirection));
 
         }
