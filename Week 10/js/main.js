@@ -2,35 +2,32 @@
 
 // Shader code
 
-// 3) Add a_colour attribute to the vertex shader
-//    Add v_colour varying to pass colours to fragments
+// 1) Add ambient lighting
 
 const vertexShaderSource = `
 attribute vec4 a_position;
-attribute vec3 a_colour;
 
 uniform mat4 u_worldMatrix;
 uniform mat4 u_viewMatrix;
 uniform mat4 u_projectionMatrix;
 
-varying vec3 v_colour;
 
 void main() {
-    // send colour to fragment shader (interpolated)
-    v_colour = a_colour;
     gl_Position = u_projectionMatrix *u_viewMatrix * u_worldMatrix * a_position;
 }
 `;
 
-// 3c) Set fragment colour to interpolated v_colour
-
 const fragmentShaderSource = `
 precision mediump float;
-varying vec3 v_colour;
+
+uniform vec3 u_ambientIntensity;
+uniform vec3 u_diffuseMaterial;
 
 void main() {
-    // set colour
-    gl_FragColor = vec4(v_colour, 1); 
+    vec3 ambient = u_ambientIntensity * u_diffuseMaterial;
+    vec3 intensity = ambient;
+    gl_FragColor = vec4(intensity, 1); 
+    // gl_FragColor = vec4(u_diffuseMaterial, 1); 
 }
 `;
 
@@ -204,6 +201,12 @@ function main() {
 
             glMatrix.mat4.lookAt(viewMatrix, eye, center, up);
             gl.uniformMatrix4fv(shader["u_viewMatrix"], false, viewMatrix);
+        }
+
+        // Lighting
+        {   
+            const ambientIntensity = [0.1, 0.1, 0.1];
+            gl.uniform3fv(shader["u_ambientIntensity"], new Float32Array(ambientIntensity));
         }
 
         // render the plane

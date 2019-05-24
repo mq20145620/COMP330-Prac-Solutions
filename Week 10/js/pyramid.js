@@ -9,8 +9,6 @@ class Pyramid {
         this.colour = [1,1,0,1];    // yellow
         this.matrix = glMatrix.mat4.create();
 
-        // 2) Redesign pyrmand as triangles
-
         let points = [
             // base            
             -1, 0, -1,
@@ -44,7 +42,6 @@ class Pyramid {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(points), gl.STATIC_DRAW);
 
-        // 5) Set the vertex colours
         let colours = [
             // base is black
             0,0,0,
@@ -92,10 +89,10 @@ class Pyramid {
         glMatrix.mat4.scale(this.matrix, this.matrix, this.scale);
         gl.uniformMatrix4fv(shader["u_worldMatrix"], false, this.matrix);
        
-        // 4) set the colour attribute
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.colourBuffer);
-        gl.vertexAttribPointer(shader["a_colour"], 3, gl.FLOAT, false, 0, 0);
-
+        // 1) Set the diffuse material to yellow
+        const diffuseMaterial = [1,1,0];
+        gl.uniform3fv(shader["u_diffuseMaterial"], new Float32Array(diffuseMaterial));
+        
         // draw it
         gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
         gl.vertexAttribPointer(shader["a_position"], 3, gl.FLOAT, false, 0, 0);
