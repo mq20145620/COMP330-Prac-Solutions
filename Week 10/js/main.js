@@ -3,16 +3,23 @@
 // Shader code
 
 // 1) Add ambient lighting
+// 2) Implement normals
 
 const vertexShaderSource = `
 attribute vec4 a_position;
+attribute vec3 a_normal;
 
 uniform mat4 u_worldMatrix;
 uniform mat4 u_viewMatrix;
 uniform mat4 u_projectionMatrix;
+uniform mat3 u_normalMatrix;
 
+varying vec3 v_normal;
 
 void main() {
+    // transform the normals into world space and pass them to the fragment shader
+    v_normal = u_normalMatrix * a_normal;
+
     gl_Position = u_projectionMatrix *u_viewMatrix * u_worldMatrix * a_position;
 }
 `;
@@ -22,6 +29,8 @@ precision mediump float;
 
 uniform vec3 u_ambientIntensity;
 uniform vec3 u_diffuseMaterial;
+
+varying vec3 v_normal;
 
 void main() {
     vec3 ambient = u_ambientIntensity * u_diffuseMaterial;

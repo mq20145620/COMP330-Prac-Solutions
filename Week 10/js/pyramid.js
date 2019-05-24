@@ -8,6 +8,7 @@ class Pyramid {
         this.scale = [1,1,1];
         this.colour = [1,1,0,1];    // yellow
         this.matrix = glMatrix.mat4.create();
+        this.normalMatrix = glMatrix.mat4.create();
 
         let points = [
             // base            
@@ -42,42 +43,37 @@ class Pyramid {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(points), gl.STATIC_DRAW);
 
-        let colours = [
-            // base is black
-            0,0,0,
-            0,0,0,
-            0,0,0,
+        // 2) Add face normals to the pyramids
+        let normals = [];
 
-            0,0,0,
-            0,0,0,
-            0,0,0,
+        // loop over each triangle in the points array
+        let faceNormal = glMatrix.vec3.create();
+        let v10 = glMatrix.vec3.create();
+        let v20 = glMatrix.vec3.create();
 
-            // sides are red, yellow, green, blue
-            1,0,0,
-            1,0,0,
-            1,0,0,
+        for (int i = 0; i < this.nPoints / 3; i++){
+            const p0 = points.slice(i * 9, i * 9 + 3);
+            const p1 = points.slice(i * 9 + 3, i * 9 + 6);
+            const p2 = points.slice(i * 9 + 6, i * 9 + 9);
 
-            1,1,0,
-            1,1,0,
-            1,1,0,
+            glMatrix.vec3.subtract(v10, p1, p0);
+            glMatrix.vec3.subtract(v20, p2, p0);
+            glMatrix.vec3.cross(faceNormal, v10, v20);
+            glMatrix.vec3.normalize(faceNormal, faceNormal);
 
-            0,1,0,
-            0,1,0,
-            0,1,0,
-
-            0,0,1,
-            0,0,1,
-            0,0,1,
-
-
-        ];
-
-        this.colourBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.colourBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colours), gl.STATIC_DRAW);
-
+            // three copies, one for each vertex
+            normals.push(faceNormal[0], faceNormal[1], faceNormal[2]);
+            normals.push(faceNormal[0], faceNormal[1], faceNormal[2]);
+            normals.push(faceNormal[0], faceNormal[1], faceNormal[2]);
+        }
+        
+        this.normalBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
 
     }
+
+
 
     render(gl, shader) {
         // set the world matrix
@@ -89,13 +85,21 @@ class Pyramid {
         glMatrix.mat4.scale(this.matrix, this.matrix, this.scale);
         gl.uniformMatrix4fv(shader["u_worldMatrix"], false, this.matrix);
        
+        // 2) set the normal matrix
+        glMatrix.mat3.noramlFromMat4(this.normalMatrix, this.matrix);
+        gl.uniformMatrix3fv(shader["u_normalMatrix"], false, this.matrix);
+
         // 1) Set the diffuse material to yellow
-        const diffuseMaterial = [1,1,0];
-        gl.uniform3fv(shader["u_diffuseMaterial"], new Float32Array(diffuseMaterial));
+        gl.uniform3fv(shader["u_diffuseMaterial"], new Float32Array(this.colour));
         
-        // draw it
+        // Set the vertex attribute
         gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
         gl.vertexAttribPointer(shader["a_position"], 3, gl.FLOAT, false, 0, 0);
+
+        // 2) Set the normal attribute
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
+        gl.vertexAttribPointer(shader["a_normal"], 3, gl.FLOAT, false, 0, 0);
+
         gl.drawArrays(gl.TRIANGLES, 0, this.nPoints);   
 
     }
