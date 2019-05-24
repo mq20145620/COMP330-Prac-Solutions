@@ -2,13 +2,16 @@
 
 const vertexShaderSource = `
 attribute vec4 a_position;
+attribute vec2 a_texcoord;
 
 uniform mat4 u_worldMatrix;
 uniform mat4 u_viewMatrix;
 uniform mat4 u_projectionMatrix;
 
 varying vec2 v_texcoord;
+
 void main() {
+    v_texcoord = a_texcoord;
     gl_Position = u_projectionMatrix * u_viewMatrix * u_worldMatrix * a_position;
 }
 `;
@@ -16,8 +19,12 @@ void main() {
 const fragmentShaderSource = `
 precision mediump float;
 
+uniform sampler2D u_texture;
+
+varying vec2 v_texcoord;
+
 void main() {
-    gl_FragColor = vec4(1, 1, 1, 1); 
+    gl_FragColor = texture2D(u_texture, v_texcoord); 
 }
 `;
 
@@ -83,8 +90,8 @@ function loadTexture(gl, url) {
         gl.generateMipmap(gl.TEXTURE_2D);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
 
     };
 
@@ -138,6 +145,7 @@ function main() {
     // Generate cylindrical mesh
 
     let points = [];
+    let uvs = [];
 
     const nDivisions = 12;
     for (let i = 0; i < nDivisions; i++) {
@@ -156,11 +164,29 @@ function main() {
         points.push(x1, -0.5, z1);
         points.push(x0, 0.5, z0);
         points.push(x1, 0.5, z1);
+
+        const u0 = 3 * i / nDivisions;
+        const u1 = 3 * (i+1) / nDivisions;
+
+        uvs.push(u0, 0);
+        uvs.push(u1, 1);
+        uvs.push(u0, 1);
+
+        uvs.push(u1, 1);
+        uvs.push(u0, 0);
+        uvs.push(u1, 0);
+
     }
 
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(points), gl.STATIC_DRAW);
+
+    const uvBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(uvs), gl.STATIC_DRAW);
+
+    const brickDiffuseTexture = loadTexture(gl, "textures/brick-diffuse.png");
 
     // === Per Frame operations ===
 
@@ -243,6 +269,13 @@ function main() {
         {
             gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
             gl.vertexAttribPointer(shader["a_position"], 3, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
+            gl.vertexAttribPointer(shader["a_texcoord"], 2, gl.FLOAT, false, 0, 0);
+
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, brickDiffuseTexture);
+            gl.uniform1i(shader["u_texture"], 0);    
 
             gl.drawArrays(gl.TRIANGLES, 0, points.length / 3);           
         }
