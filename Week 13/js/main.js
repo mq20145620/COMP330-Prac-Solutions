@@ -111,7 +111,7 @@ function main() {
     // Create the shaders
 
     const simpleShader = new SimpleShader(gl);
-    const blurShader = new BlurShader(gl);
+    const glitchShader = new GlitchShader(gl);
     
     // Construct the objects
 
@@ -229,7 +229,7 @@ function main() {
     }
 
     let renderScreenEffects = function() {
-        blurShader.enable(gl);
+        glitchShader.enable(gl);
 
         gl.viewport(0, 0, canvas.width, canvas.height);        
         gl.clearColor(0, 0, 0, 1);
@@ -237,14 +237,16 @@ function main() {
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, buffers.colourBuffer);
-        gl.uniform1i(blurShader["u_texture"], 0);    
+        gl.uniform1i(glitchShader["u_texture"], 0);    
 
-        gl.uniform1i(blurShader["u_width"], canvas.width);    
-        gl.uniform1i(blurShader["u_height"], canvas.height);    
+        gl.uniform1i(glitchShader["u_width"], canvas.width);    
+        gl.uniform1i(glitchShader["u_height"], canvas.height);    
 
-        quad.render(gl, blurShader);
+        gl.uniform1f(glitchShader["u_time"], oldTime); 
 
-        blurShader.disable(gl);
+        quad.render(gl, glitchShader);
+
+        glitchShader.disable(gl);
     }
 
     // start it going
